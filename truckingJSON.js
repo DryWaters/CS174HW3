@@ -5,21 +5,29 @@ var errorMessage = document.getElementById("errorMessage");
 var fileName;
 
 button.addEventListener("click", function() {
-	processQuery()
+	processQuery();
+
 });
 
-fileNameInput.addEventListener('keyup', function(event) {
+fileNameInput.addEventListener("keyup", function(event) {
 	if (event.which === 13) {
 		processQuery();
 	}
 });
 
 function processQuery() {
+	var processedHTML;
 	fileName = fileNameInput.value;
-	checkFileName(fileName);
+	if (isFileNameValid(fileName)) {
+		var jsonObject = loadJSON(fileName);
+		if (jsonObject != false) {
+			processedHTML = buildHTML(jsonObject);
+			createNewWindow(processedHTML);
+		}	
+	}
 }
 
-function checkFileName(name) {
+function isFileNameValid(name) {
 	var tempFile = name.toLowerCase();
 	var fileExtension = tempFile.split(".");	
 
@@ -29,5 +37,35 @@ function checkFileName(name) {
 		errorMessage.innerHTML = "Not a JSON file.  Please try again.";
 	} else {
 		errorMessage.innerHTML = "";
+		fileNameInput.value = "";
+		return true;
 	}
+	return false;
 }
+
+function loadJSON(url) {
+	var jsonDoc;
+	var xmlhttp=new XMLHttpRequest();
+	xmlhttp.open("GET", url, false);
+	try {
+		xmlhttp.send();
+		jsonDoc = xmlhttp.responseText;
+		return JSON.parse(jsonDoc);
+	} catch (err) {
+		errorMessage.innerHTML = `Failed to load JSON file named ${fileName}, with error ${err}`;
+	}
+	return false;
+}
+
+function buildHTML(json) {
+	var html = "";
+	console.log(json.Mainline);
+
+	return html;
+}
+
+function createNewWindow(html) {
+	var newWindow = window.open();
+	newWindow.document.body.innerHTML = html;
+}
+
