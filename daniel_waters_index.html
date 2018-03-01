@@ -128,7 +128,7 @@ function buildHTML(json) {
 // create a new blank window and place the built HTML
 function createNewWindow(html) {
 	let newWindow = window.open();
-	newWindow.document.body.innerHTML = html;
+	newWindow.document.write(html);
 }
 </script>
 </body>
