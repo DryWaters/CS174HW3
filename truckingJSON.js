@@ -20,10 +20,10 @@ function processQuery() {
 	fileName = fileNameInput.value;
 	if (isFileNameValid(fileName)) {
 		var jsonObject = loadJSON(fileName);
-		if (jsonObject != false) {
+		if (jsonObject != null && hasTrucks(jsonObject)) {
 			processedHTML = buildHTML(jsonObject);
 			createNewWindow(processedHTML);
-		}	
+		} 
 	}
 }
 
@@ -54,13 +54,47 @@ function loadJSON(url) {
 	} catch (err) {
 		errorMessage.innerHTML = `Failed to load JSON file named ${fileName}, with error ${err}`;
 	}
-	return false;
+	return null;
+}
+
+function hasTrucks(json) {
+	var hasRowData = "Row" in json.Mainline.Table;
+	if (!hasRowData) {
+		errorMessage.innerHTML = `JSON file named ${fileName} contains no truck information.  Please check file data.`;
+	}
+	return hasRowData;
 }
 
 function buildHTML(json) {
 	var html = "";
-	console.log(json.Mainline);
 
+	var headerData = json.Mainline.Table.Header.Data;
+	html+=`<table style='border: 1px solid black;'><thead><tr>`
+	for (var i = 0; i < headerData.length; i++) {
+		html+=`<th style='border: 1px solid black; padding: 10px;'>${headerData[i]}</th>`;
+	}
+	html+=`</tr></thead><tbody>`;
+
+	var rowData = json.Mainline.Table.Row;
+	for (var i = 0; i < rowData.length; i++) {
+		var hubsArray = rowData[i]['Hubs']['Hub'];
+		html+=`<tr><td style='border: 1px solid black; padding: 10px;'>${rowData[i]['Company']}</td>`;
+		html+=`<td style='border: 1px solid black; padding: 10px;'>${rowData[i]['Services']}</td>`;
+		html+=`<td style='border: 1px solid black; padding: 10px;'><ul>`;
+		for (var j = 0; j < hubsArray.length; j++) {
+				if (j === 0) {
+					html+=`<li style='font-weight: bold'>${hubsArray[j]}</li>`;
+				} else {
+					html+=`<li>${hubsArray[j]}</li>`;
+				}
+		}
+		html+=`</ul></td>`;
+		html+=`<td style='border: 1px solid black; padding: 10px;'>${rowData[i]['Revenue']}</td>`;
+		html+=`<td style='border: 1px solid black; padding: 10px;'><a href='${rowData[i]['HomePage']}'>${rowData[i]['HomePage']}</a></td>`;
+		html+=`<td style='border: 1px solid black; padding: 10px;'><img src='${rowData[i]['Logo']}' width='200px' height='100px' alt='${rowData[i]['Company']}\'s Logo'></td></tr>`;
+	}
+
+	html+=`</tbody></table>`;
 	return html;
 }
 
@@ -68,4 +102,3 @@ function createNewWindow(html) {
 	var newWindow = window.open();
 	newWindow.document.body.innerHTML = html;
 }
-
